@@ -5,7 +5,6 @@ class SaveTracksWorker
 
   def perform(user_id, tracks_with_date, kind = 'added')
     # Find user these tracks are associated with, if a user_id is passed
-    user = User.find user_id if user_id.present?
     audio_feature_ids = Array.new
 
     # Check if `tracks_with_date` is actually a multi-dimensional array (meaning it has dates)
@@ -70,14 +69,12 @@ class SaveTracksWorker
     # If this worker was called with 'added', we're adding these tracks to the User's library as a track they have saved/followed
     # So, we need to check for that in the Follow table and update accordingly
     if kind == 'added'
-      # FIXME lets limit to only the fields we need
-      tracks = Track.where(spotify_id: track_ids)
+      tracks = Track.where(spotify_id: track_ids).pluck(:spotify_id, :id)
       follows = []
-
       tracks_with_date.each do |track_with_date|
-        track = tracks.find{|a| a.spotify_id == track_with_date.first}
+        track_id = tracks[track_with_date.first]
         time = track_with_date.last.to_time
-        follows << Follow.new(user: user, track: track, added_at: time)
+        follows << Follow.new(user_id: user_id, track_id: track_id, added_at: time)
       end
 
       Follow.import follows, on_duplicate_key_update: {conflict_target: [:user_id, :track_id], columns: []}
@@ -85,14 +82,13 @@ class SaveTracksWorker
 
     # If this track was created from the "RecentlyStreamedWorker" worker, be sure to add that stream
     if kind == 'streamed'
-      # FIXME lets limit to only the fields we need
-      tracks = Track.where(spotify_id: track_ids)
+      tracks = Track.where(spotify_id: track_ids).pluck(:spotify_id, :id)
       streams = []
 
       tracks_with_date.each do |track_with_date|
-        track = tracks.find{|a| a.spotify_id == track_with_date.first}
+        track_id = tracks[track_with_date.first]
         time = track_with_date.last.to_time
-        streams << Stream.new(user: user, track: track, played_at: time)
+        streams << Stream.new(user_id: user_id, track_id: track, played_at: time)
       end
 
       Stream.import streams, on_duplicate_key_update: {conflict_target: [:user_id, :track_id, :played_at], columns: []}
