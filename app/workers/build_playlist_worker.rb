@@ -4,6 +4,7 @@ class BuildPlaylistWorker
 
   sidekiq_options queue: :critical, lock: :while_executing, on_conflict: :reject
 
+  # Allocations problem: https://oss.skylight.io/app/applications/x1STSO2QMwrX/1592327640/1h37m/endpoints/BuildPlaylistWorker?responseType=error
   def perform(playlist_id, spotify_playlist_id)
     playlist = Playlist.find(playlist_id)
     user = playlist.user
