@@ -10,8 +10,12 @@ class AudioFeaturesWorker
     spotify_tracks = RSpotify::AudioFeatures.find(tracks_with_spotify_ids)
     
     spotify_tracks.each do |spotify_track|
+    # FIXME why do we have to check for presence while iterating?
       if spotify_track.present?
+        # presumably we're filtering an array here.. seems like we could combine steps
         track = tracks.find{|a| a.spotify_id == spotify_track.id}
+        # this is either an indexing problem or a coordination problem -
+        # updating playlists + tracks + reading from the table at the same time.
         track.update_columns(
           acousticness: spotify_track.acousticness,
           danceability: spotify_track.danceability,
