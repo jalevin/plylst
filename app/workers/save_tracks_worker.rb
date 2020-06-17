@@ -70,6 +70,7 @@ class SaveTracksWorker
     # If this worker was called with 'added', we're adding these tracks to the User's library as a track they have saved/followed
     # So, we need to check for that in the Follow table and update accordingly
     if kind == 'added'
+      # FIXME lets limit to only the fields we need
       tracks = Track.where(spotify_id: track_ids)
       follows = []
 
@@ -84,6 +85,7 @@ class SaveTracksWorker
 
     # If this track was created from the "RecentlyStreamedWorker" worker, be sure to add that stream
     if kind == 'streamed'
+      # FIXME lets limit to only the fields we need
       tracks = Track.where(spotify_id: track_ids)
       streams = []
 
