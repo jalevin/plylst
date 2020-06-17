@@ -6,7 +6,8 @@ class UpdateArtistDataWorker
   def perform
     artists_to_update = []
 
-    Artist.all.find_each do |artist|
+    # FIXME Untested
+    Artist.all.select(:id, :last_checked_at, :popularity).find_each do |artist|
       popularity = artist.popularity.to_i
       case
         when popularity < 25
